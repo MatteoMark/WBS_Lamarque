@@ -7,6 +7,7 @@ package mainPackage;
 
 import java.sql.*;
 import java.util.ArrayList;
+import javax.ws.rs.WebApplicationException;
 
 /**
  *
@@ -31,7 +32,7 @@ public class DbOperations {
             Class.forName(myDriver);
             String myUrl = "jdbc:mysql://localhost:3306/dbimpegni_tep?serverTimezone=UTC";
             Connection conn = DriverManager.getConnection(myUrl, "root", "");
-            
+
             // our SQL SELECT query. 
             // if you only need a few columns, specify them by name instead of using "*"
             //String query = "SELECT * FROM impegni WHERE Nome = " + nomeImpegno + "";
@@ -71,30 +72,30 @@ public class DbOperations {
         }
         return res;
     }
-    
+
     /**
      * @brief add an user
      */
-    public static void addUtente(String username, String password){
-        try {
-            // create our mysql database connection
-            String myDriver = "com.mysql.jdbc.Driver";
-            Class.forName(myDriver);
-            String myUrl = "jdbc:mysql://localhost:3306/dbimpegni_tep?serverTimezone=UTC";
-            Connection conn = DriverManager.getConnection(myUrl, "root", "");
-            
-            // insert on db
-            String query = "INSERT INTO utenti (username, password) values(?, ?)";
-            PreparedStatement stmt = conn.prepareStatement(query);
-            stmt.setString (1, username);
-            stmt.setString (2, password);
-            // execute the query, and get a java resultset
-            ResultSet rs = stmt.executeQuery(query);
-            // iterate through the java resultset
-            stmt.close();
-        } catch (SQLException | ClassNotFoundException ex) {
-            System.err.println("Got an exception! ");
-            System.err.println(ex.getMessage());
+    public static void addUtente(String username, String password) throws SQLException, ClassNotFoundException {
+        // create our mysql database connection
+        String myDriver = "com.mysql.jdbc.Driver";
+        Class.forName(myDriver);
+        String myUrl = "jdbc:mysql://localhost:3306/dbimpegni_tep?serverTimezone=UTC";
+        Connection conn = DriverManager.getConnection(myUrl, "root", "");
+
+        int admin = 1;
+        // insert on db
+        String query = "INSERT INTO `utenti` (`Username`, `Password`, `Admin`) VALUES (?,?,?);";
+        //String query = "INSERT INTO `utenti` (`Username`, `Password`, `Admin`) VALUES (?,?,?);";
+        PreparedStatement stmt = conn.prepareStatement(query);
+        stmt.setString(1, username);
+        stmt.setString(2, password);
+        stmt.setInt(3, admin);
+        // execute the query, and get a java resultset
+        int rs = stmt.executeUpdate();
+        // iterate through the java resultset
+        if (rs < 0) {
+            throw new WebApplicationException("Wrong parameters", 406);
         }
     }
 }
